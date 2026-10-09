@@ -13,7 +13,7 @@ h1{font-size:40px;line-height:1;margin:0;font-weight:800;letter-spacing:-.03em}h
 .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc);transition:width .3s}
 .row{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:18px;padding:10px 12px 10px 14px;margin:10px 0;border-left:8px solid var(--c)}
 .nm{flex:1;text-align:left;padding:4px 0;min-width:0}.nm b{display:block;font-size:18px}.sub{display:flex;gap:12px;flex-wrap:wrap}
-.chk{width:52px;height:52px;border-radius:50%;border:3px solid var(--line);font-size:26px;color:transparent}.chk.d{background:var(--c);border-color:var(--c);color:#fff}
+.chk{width:52px;height:52px;border-radius:50%;border:3px solid var(--line);font-size:26px;color:transparent;flex:none}.chk.d{background:var(--c);border-color:var(--c);color:#fff}
 .cnt{display:flex;align-items:center;gap:2px}.cnt button{width:44px;height:44px;border-radius:50%;background:var(--bg);font-size:24px}.cnt output{min-width:48px;text-align:center;font-weight:800;font-size:20px}.cnt .d{color:var(--c)}
 .empty{text-align:center;color:var(--mut);padding:40px 0}
 .tabs{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;align-items:center;justify-content:center;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line)}
@@ -29,9 +29,13 @@ h1{font-size:40px;line-height:1;margin:0;font-weight:800;letter-spacing:-.03em}h
 label{display:block;font-size:14px;color:var(--mut);margin-top:12px}input,select,textarea{width:100%;display:block;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);margin-top:4px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.chips,.sw{display:flex;gap:6px;margin-top:6px}.chips button{flex:1;height:44px;border-radius:12px;background:var(--bg);border:1px solid var(--line)}.chips .on{background:var(--acc);color:var(--on)}
 .sw button{width:44px;height:44px;border-radius:50%;background:var(--c);border:3px solid transparent}.sw .on{border-color:var(--ink)}
+.tdadd{display:flex;gap:8px;margin:14px 0}.tdadd input{margin:0;flex:1;min-width:0}.tdadd .btn{flex:none}
+.td .chk.d{color:var(--on)}.td .nm{overflow-wrap:anywhere}.td .fin{color:var(--mut);text-decoration:line-through}
+.xb{width:44px;height:44px;border-radius:50%;background:var(--bg);font-size:22px;color:var(--mut);flex:none}
+.tdh{display:flex;align-items:center;justify-content:space-between;margin-top:24px}.tdh h2{margin:0}
 </style></head><body>
 <main id="app"></main>
-<nav class="tabs"><button id="t1" onclick="show('today')">Today</button><button class="add" onclick="openForm()" aria-label="Add habit">+</button><button id="t2" onclick="show('stats')">Stats</button></nav>
+<nav class="tabs"><button id="t1" onclick="show('today')">Today</button><button id="t3" onclick="show('todo')">To-do</button><button class="add" onclick="openForm()" aria-label="Add habit">+</button><button id="t2" onclick="show('stats')">Stats</button></nav>
 <div class="ov" id="fm" hidden><div class="sheet">
 <h2 id="f_h">New habit</h2>
 <label>Name<input id="f_n" maxlength="40" placeholder="e.g. Gym"></label>
@@ -48,8 +52,9 @@ label{display:block;font-size:14px;color:var(--mut);margin-top:12px}input,select
 const $=s=>document.querySelector(s),E=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pad=n=>String(n).padStart(2,'0'),key=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),P=k=>{const[a,b,c]=k.split('-');return new Date(+a,b-1,+c)},add=(k,n)=>{const d=P(k);d.setDate(d.getDate()+n);return key(d)},dow=k=>(P(k).getDay()+6)%7,ws=k=>add(k,-dow(k)),TODAY=key(new Date());
 const COLS=['#E4572E','#E3A21A','#2E9E6B','#2F7DE1','#8A5BD6','#D6457F'],DN=['M','T','W','T','F','S','S'];
-let S={habits:[],logs:{}},view='today',day=TODAY,sel=null,range='week',editId=null,fcol=COLS[0],fdays=[];
+let S={habits:[],logs:{},todos:[]},view='today',day=TODAY,sel=null,range='week',editId=null,fcol=COLS[0],fdays=[];
 try{const r=JSON.parse(localStorage.getItem('ht')||'null');if(r&&r.habits)S=r}catch(e){}
+S.todos=Array.isArray(S.todos)?S.todos:[];
 const save=()=>{try{localStorage.setItem('ht',JSON.stringify(S))}catch(e){}};
 const act=()=>S.habits.filter(h=>!h.arch),get=id=>S.habits.find(h=>h.id==id);
 const v=(h,k)=>(S.logs[h.id]||{})[k]||0,ok=(h,k)=>v(h,k)>=(h.type=='count'?h.target:1),sch=(h,k)=>h.mode!='days'||h.days.includes(dow(k));
@@ -76,7 +81,14 @@ return `<button class="btn g" onclick="show('today')">‹ Back</button><h1 style
 <div class="cards"><div class="card"><b>${c}</b><span class="sm">streak (${u})</span></div><div class="card"><b>${b}</b><span class="sm">best (${u})</span></div><div class="card"><b>${Math.round(rate(h,30)*100)}%</b><span class="sm">last 30 days</span></div></div>
 <h2>Last 17 weeks</h2><div class="heat" style="--c:${h.color}">${cells}</div>
 <div class="acts"><button class="btn" onclick="openForm('${h.id}')">Edit</button><button class="btn g" onclick="arch('${h.id}')">Archive</button><button class="btn g" onclick="del('${h.id}')">Delete</button></div>`}
-function draw(){$('#app').innerHTML=view=='stats'?statsV():view=='detail'?detV():todayV();$('#t1').className=view!='stats'?'on':'';$('#t2').className=view=='stats'?'on':''}
+function trow(t){return `<div class="row td" style="--c:var(--acc)"><div class="nm ${t.done?'fin':''}">${E(t.text)}</div><button class="xb" onclick="delT('${t.id}')" aria-label="Delete task">×</button><button class="chk ${t.done?'d':''}" onclick="tgT('${t.id}')" aria-label="Toggle done">✓</button></div>`}
+function todoV(){const o=S.todos.filter(t=>!t.done),d=S.todos.filter(t=>t.done);
+return `<h1>To-do</h1><p class="sm">${o.length} open</p><div class="tdadd"><input id="td_i" maxlength="120" placeholder="Add a task" aria-label="New task" onkeydown="if(event.key=='Enter')addT()"><button class="btn" onclick="addT()">Add</button></div>`+(o.length?o.map(trow).join(''):`<p class="empty">${d.length?'All done.':'No tasks yet. Add one above.'}</p>`)+(d.length?`<div class="tdh"><h2>Done (${d.length})</h2><button class="btn g" onclick="clrT()">Clear done</button></div>`+d.map(trow).join(''):'')}
+function addT(){const i=$('#td_i'),x=i.value.trim();if(!x){i.focus();return}S.todos.push({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),text:x,done:0});save();draw();$('#td_i').focus()}
+function tgT(id){const t=S.todos.find(t=>t.id==id);if(t){t.done=t.done?0:1;save();draw()}}
+function delT(id){S.todos=S.todos.filter(t=>t.id!=id);save();draw()}
+function clrT(){if(!confirm('Remove all done tasks?'))return;S.todos=S.todos.filter(t=>!t.done);save();draw()}
+function draw(){$('#app').innerHTML=view=='stats'?statsV():view=='detail'?detV():view=='todo'?todoV():todayV();$('#t1').className=view=='today'||view=='detail'?'on':'';$('#t2').className=view=='stats'?'on':'';$('#t3').className=view=='todo'?'on':''}
 function show(x){view=x;draw();scrollTo(0,0)}function go(n){day=add(day,n);draw()}function rng(r){range=r;draw()}function detail(id){sel=id;show('detail')}
 function bump(id,d){const h=get(id),L=S.logs[id]=S.logs[id]||{};L[day]=Math.max(0,v(h,day)+d*(h.type=='count'?h.step:1));save();draw()}
 function arch(id){get(id).arch=1;save();show('today')}function del(id){if(!confirm('Delete this habit and its history?'))return;S.habits=S.habits.filter(h=>h.id!=id);delete S.logs[id];save();show('today')}
@@ -89,6 +101,6 @@ if(editId)Object.assign(get(editId),o);else S.habits.push({id:'h'+Date.now().toS
 function closeAll(){$('#fm').hidden=true;$('#bk').hidden=true}
 function openB(){$('#b_t').value=JSON.stringify(S);$('#bk').hidden=false}
 function copyB(){const t=$('#b_t');t.select();try{navigator.clipboard.writeText(t.value)}catch(e){}}
-function restoreB(){try{const r=JSON.parse($('#b_t').value);if(!r.habits||!r.logs)throw 0;if(!confirm('Replace all current data with this backup?'))return;S=r;save();closeAll();show('today')}catch(e){alert('That backup text is not valid.')}}
+function restoreB(){try{const r=JSON.parse($('#b_t').value);if(!r.habits||!r.logs)throw 0;if(!confirm('Replace all current data with this backup?'))return;S=r;S.todos=Array.isArray(S.todos)?S.todos:[];save();closeAll();show('today')}catch(e){alert('That backup text is not valid.')}}
 draw();
 </script></body></html>
