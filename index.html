@@ -47,10 +47,11 @@ label{display:block;font-size:14px;color:var(--mut);margin-top:12px}input,select
 .swp .row.td{height:66px}
 .td .nm{padding:0;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .td .chk,.td .xb{width:40px;height:40px;font-size:20px}
+.tabs .add{transition:transform .2s,opacity .2s}.tabs .add.hid{opacity:0;transform:scale(.5);pointer-events:none}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <main id="app"></main>
-<nav class="tabs"><button id="t1" onclick="show('today')">Today</button><button id="t3" onclick="show('todo')">To-do</button><button class="add" onclick="openForm()" aria-label="Add habit">+</button><button id="t2" onclick="show('stats')">Stats</button></nav>
+<nav class="tabs"><button id="t1" onclick="show('today')">Today</button><button id="t3" onclick="show('todo')">To-do</button><button class="add" id="fab" onclick="fab()" aria-label="Add habit">+</button><button id="t2" onclick="show('stats')">Stats</button></nav>
 <div class="ov" id="fm" hidden><div class="sheet">
 <h2 id="f_h">New habit</h2>
 <label>Name<input id="f_n" maxlength="40" placeholder="e.g. Gym"></label>
@@ -119,7 +120,8 @@ if(e.type=='pointerup'&&Math.abs(s.dx)>=thr(s)){s.sw.classList.remove('go');leav
 else{s.f.style.transition='';s.f.style.transform='';s.sw.classList.remove('go');setTimeout(()=>{if(!s.sw.dataset.busy)s.sw.classList.remove('sr','sl')},260)}}
 document.addEventListener('pointerup',endSw);document.addEventListener('pointercancel',endSw);
 function clrT(){if(!confirm('Remove all done tasks?'))return;S.todos=S.todos.filter(t=>!t.done);save();draw()}
-function draw(){$('#app').innerHTML=view=='stats'?statsV():view=='detail'?detV():view=='todo'?todoV():todayV();$('#t1').className=view=='today'||view=='detail'?'on':'';$('#t2').className=view=='stats'?'on':'';$('#t3').className=view=='todo'?'on':'';fresh=null}
+function draw(){$('#app').innerHTML=view=='stats'?statsV():view=='detail'?detV():view=='todo'?todoV():todayV();$('#t1').className=view=='today'||view=='detail'?'on':'';$('#t2').className=view=='stats'?'on':'';$('#t3').className=view=='todo'?'on':'';const fb=$('#fab');fb.classList.toggle('hid',view=='stats');fb.tabIndex=view=='stats'?-1:0;fb.setAttribute('aria-label',view=='todo'?'Add task':'Add habit');fresh=null}
+function fab(){if(view=='todo'){scrollTo(0,0);$('#td_i').focus()}else openForm()}
 function show(x){view=x;draw();scrollTo(0,0);const a=$('#app');a.classList.remove('fade');void a.offsetWidth;a.classList.add('fade')}function go(n){day=add(day,n);draw()}function rng(r){range=r;draw()}function detail(id){sel=id;show('detail')}
 function bump(id,d){const h=get(id),L=S.logs[id]=S.logs[id]||{};L[day]=Math.max(0,v(h,day)+d*(h.type=='count'?h.step:1));save();draw()}
 function arch(id){get(id).arch=1;save();show('today')}function del(id){if(!confirm('Delete this habit and its history?'))return;S.habits=S.habits.filter(h=>h.id!=id);delete S.logs[id];save();show('today')}
