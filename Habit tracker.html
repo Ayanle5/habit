@@ -1,0 +1,94 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Habit tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF2EF;--card:#fff;--ink:#16302A;--mut:#64766F;--line:#D5DFD9;--acc:#16302A;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1916;--card:#172722;--ink:#E7F1EC;--mut:#93A8A0;--line:#2A3D37;--acc:#9FE0C0;--on:#0E1916}}
+:root[data-theme="dark"]{--bg:#0E1916;--card:#172722;--ink:#E7F1EC;--mut:#93A8A0;--line:#2A3D37;--acc:#9FE0C0;--on:#0E1916}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:auto;background:var(--bg);color:var(--ink);font:16px/1.4 'Bricolage Grotesque',system-ui,sans-serif;padding:16px 16px 110px;max-width:520px}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+h1{font-size:40px;line-height:1;margin:0;font-weight:800;letter-spacing:-.03em}h2{margin:0 0 8px}p{margin:2px 0}.sm,.sub{color:var(--mut);font-size:14px}
+.nav{display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px}.nav>div{text-align:center}.nav button{font-size:30px;width:44px;height:44px;border-radius:50%;background:var(--card)}.nav button:disabled{opacity:.3}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--acc);transition:width .3s}
+.row{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:18px;padding:10px 12px 10px 14px;margin:10px 0;border-left:8px solid var(--c)}
+.nm{flex:1;text-align:left;padding:4px 0;min-width:0}.nm b{display:block;font-size:18px}.sub{display:flex;gap:12px;flex-wrap:wrap}
+.chk{width:52px;height:52px;border-radius:50%;border:3px solid var(--line);font-size:26px;color:transparent}.chk.d{background:var(--c);border-color:var(--c);color:#fff}
+.cnt{display:flex;align-items:center;gap:2px}.cnt button{width:44px;height:44px;border-radius:50%;background:var(--bg);font-size:24px}.cnt output{min-width:48px;text-align:center;font-weight:800;font-size:20px}.cnt .d{color:var(--c)}
+.empty{text-align:center;color:var(--mut);padding:40px 0}
+.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;align-items:center;justify-content:center;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line)}
+.tabs button{flex:1;max-width:150px;height:48px;border-radius:14px;font-weight:600;color:var(--mut)}.tabs .on{color:var(--ink);background:var(--bg)}.tabs .add{flex:none;width:56px;height:56px;border-radius:50%;background:var(--acc);color:var(--on);font-size:30px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.card{background:var(--card);border-radius:16px;padding:12px}.card b{font-size:28px;display:block;font-weight:800}
+.seg{display:flex;gap:6px;margin:12px 0}.seg button{flex:1;height:44px;border-radius:12px;background:var(--card)}.seg .on{background:var(--acc);color:var(--on)}
+.chart{display:flex;align-items:flex-end;gap:3px;height:150px;margin:12px 0 24px}.col{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--mut)}.t{flex:1;width:100%;display:flex;align-items:flex-end}.t i{width:100%;background:var(--acc);border-radius:4px 4px 0 0;min-height:3px}.col span{height:16px}
+.rt{margin:12px 0}.rt div{display:flex;justify-content:space-between}.rt .bar i{background:var(--c)}
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:3px;margin:12px 0}.heat i{aspect-ratio:1;border-radius:3px;background:var(--line)}.heat i.on{background:var(--c)}.heat i.x{visibility:hidden}.heat i.u{background:transparent;border:1px dashed var(--line)}
+.acts{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}.btn{height:48px;padding:0 20px;border-radius:14px;background:var(--acc);color:var(--on);font-weight:600}.btn.g{background:var(--card);color:var(--ink)}
+.ov{position:fixed;inset:0;background:#0008;display:flex;align-items:flex-end;justify-content:center;z-index:9}.ov[hidden]{display:none}
+.sheet{background:var(--card);width:100%;max-width:520px;max-height:92%;overflow:auto;border-radius:24px 24px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px))}
+label{display:block;font-size:14px;color:var(--mut);margin-top:12px}input,select,textarea{width:100%;display:block;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);margin-top:4px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.chips,.sw{display:flex;gap:6px;margin-top:6px}.chips button{flex:1;height:44px;border-radius:12px;background:var(--bg);border:1px solid var(--line)}.chips .on{background:var(--acc);color:var(--on)}
+.sw button{width:44px;height:44px;border-radius:50%;background:var(--c);border:3px solid transparent}.sw .on{border-color:var(--ink)}
+</style></head><body>
+<main id="app"></main>
+<nav class="tabs"><button id="t1" onclick="show('today')">Today</button><button class="add" onclick="openForm()" aria-label="Add habit">+</button><button id="t2" onclick="show('stats')">Stats</button></nav>
+<div class="ov" id="fm" hidden><div class="sheet">
+<h2 id="f_h">New habit</h2>
+<label>Name<input id="f_n" maxlength="40" placeholder="e.g. Gym"></label>
+<label>Type<select id="f_t" onchange="fsync()"><option value="check">Done / not done</option><option value="count">Count toward a target</option></select></label>
+<div class="g3" id="f_c"><label>Target<input id="f_g" type="number" min="1" value="1"></label><label>Unit<input id="f_u" maxlength="12" placeholder="steps"></label><label>Per tap<input id="f_s" type="number" min="1" value="1"></label></div>
+<label>Schedule<select id="f_m" onchange="fsync()"><option value="daily">Every day</option><option value="days">Specific days</option><option value="weekly">Some times a week</option></select></label>
+<div class="chips" id="f_k"></div>
+<label id="f_wl">Times per week<input id="f_w" type="number" min="1" max="7" value="3"></label>
+<label>Colour</label><div class="sw" id="f_col"></div>
+<div class="acts"><button class="btn" onclick="saveForm()">Save habit</button><button class="btn g" onclick="closeAll()">Cancel</button></div>
+</div></div>
+<div class="ov" id="bk" hidden><div class="sheet"><h2>Backup</h2><p class="sm">Copy this text to save your data. To restore, paste a backup here and tap Restore.</p><textarea id="b_t" rows="8"></textarea><div class="acts"><button class="btn" onclick="copyB()">Copy</button><button class="btn g" onclick="restoreB()">Restore</button><button class="btn g" onclick="closeAll()">Close</button></div></div></div>
+<script>
+const $=s=>document.querySelector(s),E=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pad=n=>String(n).padStart(2,'0'),key=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),P=k=>{const[a,b,c]=k.split('-');return new Date(+a,b-1,+c)},add=(k,n)=>{const d=P(k);d.setDate(d.getDate()+n);return key(d)},dow=k=>(P(k).getDay()+6)%7,ws=k=>add(k,-dow(k)),TODAY=key(new Date());
+const COLS=['#E4572E','#E3A21A','#2E9E6B','#2F7DE1','#8A5BD6','#D6457F'],DN=['M','T','W','T','F','S','S'];
+let S={habits:[],logs:{}},view='today',day=TODAY,sel=null,range='week',editId=null,fcol=COLS[0],fdays=[];
+try{const r=JSON.parse(localStorage.getItem('ht')||'null');if(r&&r.habits)S=r}catch(e){}
+const save=()=>{try{localStorage.setItem('ht',JSON.stringify(S))}catch(e){}};
+const act=()=>S.habits.filter(h=>!h.arch),get=id=>S.habits.find(h=>h.id==id);
+const v=(h,k)=>(S.logs[h.id]||{})[k]||0,ok=(h,k)=>v(h,k)>=(h.type=='count'?h.target:1),sch=(h,k)=>h.mode!='days'||h.days.includes(dow(k));
+const wc=(h,k)=>{const s=ws(k);let c=0;for(let i=0;i<7;i++)if(ok(h,add(s,i)))c++;return c};
+const start=h=>Object.keys(S.logs[h.id]||{}).concat(h.created).sort()[0];
+function streak(h){let run=0,best=0;if(h.mode=='weekly'){for(let w=ws(start(h)),cw=ws(TODAY);w<=cw;w=add(w,7)){if(wc(h,w)>=h.n)run++;else if(w<cw)run=0;best=Math.max(best,run)}}
+else for(let k=start(h);k<=TODAY;k=add(k,1)){if(!sch(h,k))continue;if(ok(h,k))run++;else if(k<TODAY)run=0;best=Math.max(best,run)}return[run,best]}
+function rate(h,N){if(h.mode=='weekly'){if(N<=7)return Math.min(1,wc(h,TODAY)/h.n);let m=0;for(let i=0;i<4;i++)if(wc(h,add(TODAY,-7*i))>=h.n)m++;return m/4}
+let s=0,d=0;for(let i=0;i<N;i++){const k=add(TODAY,-i);if(k<start(h)||!sch(h,k))continue;s++;if(ok(h,k))d++}return s?d/s:0}
+function row(h){const[c]=streak(h),x=v(h,day),n=h.type=='count',d=ok(h,day);
+const parts=[n?`${x}/${h.target} ${E(h.unit||'')}`:'',h.mode=='weekly'?`${wc(h,day)}/${h.n} this week`:'',c?`${c} ${h.mode=='weekly'?'week':'day'} streak`:''].filter(Boolean);
+return `<div class="row" style="--c:${h.color}"><button class="nm" onclick="detail('${h.id}')"><b>${E(h.name)}</b><span class="sub">${parts.map(p=>`<span>${p}</span>`).join('')}</span></button>`+(n?`<div class="cnt"><button onclick="bump('${h.id}',-1)" aria-label="Less">−</button><output class="${d?'d':''}">${x}</output><button onclick="bump('${h.id}',1)" aria-label="More">+</button></div>`:`<button class="chk ${d?'d':''}" onclick="bump('${h.id}',${d?-1:1})" aria-label="Toggle done">✓</button>`)+`</div>`}
+function todayV(){const hs=act().filter(h=>sch(h,day)),d=hs.filter(h=>ok(h,day)).length,D=P(day);
+return `<div class="nav"><button onclick="go(-1)" aria-label="Previous day">‹</button><div><h1>${day==TODAY?'Today':D.toLocaleDateString('en-GB',{weekday:'long'})}</h1><p class="sm">${D.toLocaleDateString('en-GB',{day:'numeric',month:'long'})}</p></div><button onclick="go(1)" ${day>=TODAY?'disabled':''} aria-label="Next day">›</button></div><div class="bar"><i style="width:${hs.length?d/hs.length*100:0}%"></i></div><p class="sm">${d} of ${hs.length} done</p>`+(hs.length?hs.map(row).join(''):`<p class="empty">No habits scheduled. Tap + to add one.</p>`)}
+function statsV(){const N=range=='week'?7:30,ds=[];for(let i=N-1;i>=0;i--)ds.push(add(TODAY,-i));
+const pc=ds.map(k=>{const hs=act().filter(h=>h.mode!='weekly'&&sch(h,k)&&k>=start(h));return hs.length?hs.filter(h=>ok(h,k)).length/hs.length:null}),f=pc.filter(x=>x!==null),avg=f.length?Math.round(f.reduce((a,b)=>a+b,0)/f.length*100):0;
+return `<h1>Stats</h1><div class="seg"><button class="${range=='week'?'on':''}" onclick="rng('week')">Week</button><button class="${range=='month'?'on':''}" onclick="rng('month')">Month</button></div><p class="sm">Average daily completion: <b>${avg}%</b></p>
+<div class="chart">${pc.map((p,i)=>`<div class="col" title="${ds[i]}"><div class="t"><i style="height:${(p||0)*100}%"></i></div><span>${N==7?DN[dow(ds[i])]:(i%7==0?P(ds[i]).getDate():'')}</span></div>`).join('')}</div>
+<h2>By habit</h2>`+(act().length?act().map(h=>{const r=Math.round(rate(h,N)*100);return `<div class="rt" style="--c:${h.color}"><div><span>${E(h.name)}</span><b>${r}%</b></div><div class="bar"><i style="width:${r}%"></i></div></div>`}).join(''):`<p class="empty">Add a habit to see stats.</p>`)+`<div class="acts"><button class="btn g" onclick="openB()">Backup / restore</button></div>`}
+function detV(){const h=get(sel);if(!h){view='today';return todayV()}const[c,b]=streak(h),u=h.mode=='weekly'?'wks':'days',s=add(ws(TODAY),-112);let cells='';
+for(let i=0;i<119;i++){const k=add(s,i);if(k>TODAY){cells+='<i class="x"></i>';continue}const a=h.type=='count'?Math.min(1,v(h,k)/h.target):(ok(h,k)?1:0);cells+=a?`<i class="on" style="opacity:${.3+.7*a}" title="${k}"></i>`:`<i class="${sch(h,k)?'':'u'}" title="${k}"></i>`}
+const sc=h.mode=='daily'?'Every day':h.mode=='weekly'?`${h.n}× per week`:h.days.map(d=>['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][d]).join(', ');
+return `<button class="btn g" onclick="show('today')">‹ Back</button><h1 style="margin-top:16px;color:${h.color}">${E(h.name)}</h1><p class="sm">${sc}${h.type=='count'?`, target ${h.target} ${E(h.unit||'')}`:''}</p>
+<div class="cards"><div class="card"><b>${c}</b><span class="sm">streak (${u})</span></div><div class="card"><b>${b}</b><span class="sm">best (${u})</span></div><div class="card"><b>${Math.round(rate(h,30)*100)}%</b><span class="sm">last 30 days</span></div></div>
+<h2>Last 17 weeks</h2><div class="heat" style="--c:${h.color}">${cells}</div>
+<div class="acts"><button class="btn" onclick="openForm('${h.id}')">Edit</button><button class="btn g" onclick="arch('${h.id}')">Archive</button><button class="btn g" onclick="del('${h.id}')">Delete</button></div>`}
+function draw(){$('#app').innerHTML=view=='stats'?statsV():view=='detail'?detV():todayV();$('#t1').className=view!='stats'?'on':'';$('#t2').className=view=='stats'?'on':''}
+function show(x){view=x;draw();scrollTo(0,0)}function go(n){day=add(day,n);draw()}function rng(r){range=r;draw()}function detail(id){sel=id;show('detail')}
+function bump(id,d){const h=get(id),L=S.logs[id]=S.logs[id]||{};L[day]=Math.max(0,v(h,day)+d*(h.type=='count'?h.step:1));save();draw()}
+function arch(id){get(id).arch=1;save();show('today')}function del(id){if(!confirm('Delete this habit and its history?'))return;S.habits=S.habits.filter(h=>h.id!=id);delete S.logs[id];save();show('today')}
+function fsync(){$('#f_c').style.display=$('#f_t').value=='count'?'grid':'none';$('#f_k').style.display=$('#f_m').value=='days'?'flex':'none';$('#f_wl').style.display=$('#f_m').value=='weekly'?'block':'none'}
+function fdraw(){$('#f_k').innerHTML=DN.map((d,i)=>`<button class="${fdays.includes(i)?'on':''}" onclick="tgl(${i})" aria-label="Day ${i+1}">${d}</button>`).join('');$('#f_col').innerHTML=COLS.map(c=>`<button style="--c:${c}" class="${c==fcol?'on':''}" onclick="pick('${c}')" aria-label="Colour ${c}"></button>`).join('');fsync()}
+function tgl(i){fdays=fdays.includes(i)?fdays.filter(x=>x!=i):fdays.concat(i);fdraw()}function pick(c){fcol=c;fdraw()}
+function openForm(id){editId=id||null;const h=id?get(id):null;$('#f_h').textContent=h?'Edit habit':'New habit';$('#f_n').value=h?h.name:'';$('#f_t').value=h?h.type:'check';$('#f_g').value=h?h.target:1;$('#f_u').value=h?h.unit||'':'';$('#f_s').value=h?h.step:1;$('#f_m').value=h?h.mode:'daily';$('#f_w').value=h?h.n:3;fdays=h?h.days.slice():[0,2,4];fcol=h?h.color:COLS[act().length%6];fdraw();$('#fm').hidden=false;$('#f_n').focus()}
+function saveForm(){const name=$('#f_n').value.trim();if(!name){$('#f_n').focus();return}const mode=$('#f_m').value,o={name,type:$('#f_t').value,target:Math.max(1,+$('#f_g').value||1),unit:$('#f_u').value.trim(),step:Math.max(1,+$('#f_s').value||1),mode,days:fdays.length?fdays.slice():[0,1,2,3,4,5,6],n:Math.min(7,Math.max(1,+$('#f_w').value||3)),color:fcol};
+if(editId)Object.assign(get(editId),o);else S.habits.push({id:'h'+Date.now().toString(36),created:TODAY,...o});save();closeAll();draw()}
+function closeAll(){$('#fm').hidden=true;$('#bk').hidden=true}
+function openB(){$('#b_t').value=JSON.stringify(S);$('#bk').hidden=false}
+function copyB(){const t=$('#b_t');t.select();try{navigator.clipboard.writeText(t.value)}catch(e){}}
+function restoreB(){try{const r=JSON.parse($('#b_t').value);if(!r.habits||!r.logs)throw 0;if(!confirm('Replace all current data with this backup?'))return;S=r;save();closeAll();show('today')}catch(e){alert('That backup text is not valid.')}}
+draw();
+</script></body></html>
