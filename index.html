@@ -33,17 +33,20 @@ label{display:block;font-size:14px;color:var(--mut);margin-top:12px}input,select
 .td .chk.d{color:var(--on)}.td .nm{overflow-wrap:anywhere}.td .fin{color:var(--mut);text-decoration:line-through}
 .xb{width:44px;height:44px;border-radius:50%;background:var(--bg);font-size:22px;color:var(--mut);flex:none}
 .tdh{display:flex;align-items:center;justify-content:space-between;margin-top:24px}.tdh h2{margin:0}
-.sw{position:relative;margin:10px 0;border-radius:18px;overflow:hidden}
-.sw .row.td{margin:0;position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none;will-change:transform;transition:transform .25s cubic-bezier(.2,.9,.3,1.2)}
+.swp{position:relative;margin:10px 0;border-radius:18px;overflow:hidden}
+.swp .row.td{margin:0;position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none;will-change:transform;transition:transform .25s cubic-bezier(.2,.9,.3,1.2)}
 .bgk{position:absolute;inset:0;display:flex;align-items:center;padding:0 24px;color:#fff;font-weight:600;opacity:0}
 .bgk.l{background:#2E9E6B;justify-content:flex-start}.bgk.r{background:#E4572E;justify-content:flex-end}
 .bgk span{transition:transform .15s}
-.sw.sr .bgk.l,.sw.sl .bgk.r{opacity:1}
-.sw.go .bgk span{transform:scale(1.2)}
-.sw.in{animation:pin .3s cubic-bezier(.2,.8,.2,1)}
+.swp.sr .bgk.l,.swp.sl .bgk.r{opacity:1}
+.swp.go .bgk span{transform:scale(1.2)}
+.swp.in{animation:pin .3s cubic-bezier(.2,.8,.2,1)}
 @keyframes pin{from{opacity:0;transform:translateY(-10px) scale(.97)}}
 #app.fade{animation:fd .25s ease}
 @keyframes fd{from{opacity:0;transform:translateY(6px)}}
+.swp .row.td{height:66px}
+.td .nm{padding:0;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.td .chk,.td .xb{width:40px;height:40px;font-size:20px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <main id="app"></main>
@@ -93,12 +96,12 @@ return `<button class="btn g" onclick="show('today')">‹ Back</button><h1 style
 <div class="cards"><div class="card"><b>${c}</b><span class="sm">streak (${u})</span></div><div class="card"><b>${b}</b><span class="sm">best (${u})</span></div><div class="card"><b>${Math.round(rate(h,30)*100)}%</b><span class="sm">last 30 days</span></div></div>
 <h2>Last 17 weeks</h2><div class="heat" style="--c:${h.color}">${cells}</div>
 <div class="acts"><button class="btn" onclick="openForm('${h.id}')">Edit</button><button class="btn g" onclick="arch('${h.id}')">Archive</button><button class="btn g" onclick="del('${h.id}')">Delete</button></div>`}
-function trow(t){return `<div class="sw ${fresh==t.id?'in':''}" data-id="${t.id}"><div class="bgk l"><span>${t.done?'Undo':'Done'}</span></div><div class="bgk r"><span>Delete</span></div><div class="row td front" style="--c:var(--acc)"><div class="nm ${t.done?'fin':''}">${E(t.text)}</div><button class="xb" onclick="delT('${t.id}')" aria-label="Delete task">×</button><button class="chk ${t.done?'d':''}" onclick="tgT('${t.id}')" aria-label="Toggle done">✓</button></div></div>`}
+function trow(t){return `<div class="swp ${fresh==t.id?'in':''}" data-id="${t.id}"><div class="bgk l"><span>${t.done?'Undo':'Done'}</span></div><div class="bgk r"><span>Delete</span></div><div class="row td front" style="--c:var(--acc)"><div class="nm ${t.done?'fin':''}">${E(t.text)}</div><button class="xb" onclick="delT('${t.id}')" aria-label="Delete task">×</button><button class="chk ${t.done?'d':''}" onclick="tgT('${t.id}')" aria-label="Toggle done">✓</button></div></div>`}
 function todoV(){const o=S.todos.filter(t=>!t.done),d=S.todos.filter(t=>t.done);
 return `<h1>To-do</h1><p class="sm">${o.length} open</p><div class="tdadd"><input id="td_i" maxlength="120" placeholder="Add a task" aria-label="New task" onkeydown="if(event.key=='Enter')addT()"><button class="btn" onclick="addT()">Add</button></div>`+(S.todos.length?'<p class="sm">Swipe right to complete, left to delete.</p>':'')+(o.length?o.map(trow).join(''):`<p class="empty">${d.length?'All done.':'No tasks yet. Add one above.'}</p>`)+(d.length?`<div class="tdh"><h2>Done (${d.length})</h2><button class="btn g" onclick="clrT()">Clear done</button></div>`+d.map(trow).join(''):'')}
 function addT(){const i=$('#td_i'),x=i.value.trim();if(!x){i.focus();return}const id='t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);S.todos.unshift({id,text:x,done:0});fresh=id;save();draw();$('#td_i').focus()}
 let fresh=null,sw0=null;
-const swEl=id=>document.querySelector('.sw[data-id="'+id+'"]');
+const swEl=id=>document.querySelector('.swp[data-id="'+id+'"]');
 function leave(sw,dir,cb){if(!sw){cb();return}if(sw.dataset.busy)return;sw.dataset.busy=1;const f=sw.querySelector('.front');sw.classList.add(dir>0?'sr':'sl');f.style.transition='transform .22s ease';f.style.transform='translateX('+dir*110+'%)';
 setTimeout(()=>{sw.style.height=sw.offsetHeight+'px';sw.offsetHeight;sw.style.transition='height .2s ease,margin .2s ease';sw.style.height='0';sw.style.margin='0';setTimeout(cb,200)},200)}
 function tgT(id){leave(swEl(id),1,()=>doT(id))}
