@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Habit tracker</title>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Habit tracker</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-title" content="Habits"><meta name="theme-color" content="#16302A">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#EEF2EF;--card:#fff;--ink:#16302A;--mut:#64766F;--line:#D5DFD9;--acc:#16302A;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -33,6 +33,18 @@ label{display:block;font-size:14px;color:var(--mut);margin-top:12px}input,select
 .td .chk.d{color:var(--on)}.td .nm{overflow-wrap:anywhere}.td .fin{color:var(--mut);text-decoration:line-through}
 .xb{width:44px;height:44px;border-radius:50%;background:var(--bg);font-size:22px;color:var(--mut);flex:none}
 .tdh{display:flex;align-items:center;justify-content:space-between;margin-top:24px}.tdh h2{margin:0}
+.sw{position:relative;margin:10px 0;border-radius:18px;overflow:hidden}
+.sw .row.td{margin:0;position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none;will-change:transform;transition:transform .25s cubic-bezier(.2,.9,.3,1.2)}
+.bgk{position:absolute;inset:0;display:flex;align-items:center;padding:0 24px;color:#fff;font-weight:600;opacity:0}
+.bgk.l{background:#2E9E6B;justify-content:flex-start}.bgk.r{background:#E4572E;justify-content:flex-end}
+.bgk span{transition:transform .15s}
+.sw.sr .bgk.l,.sw.sl .bgk.r{opacity:1}
+.sw.go .bgk span{transform:scale(1.2)}
+.sw.in{animation:pin .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes pin{from{opacity:0;transform:translateY(-10px) scale(.97)}}
+#app.fade{animation:fd .25s ease}
+@keyframes fd{from{opacity:0;transform:translateY(6px)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <main id="app"></main>
 <nav class="tabs"><button id="t1" onclick="show('today')">Today</button><button id="t3" onclick="show('todo')">To-do</button><button class="add" onclick="openForm()" aria-label="Add habit">+</button><button id="t2" onclick="show('stats')">Stats</button></nav>
@@ -81,15 +93,31 @@ return `<button class="btn g" onclick="show('today')">‹ Back</button><h1 style
 <div class="cards"><div class="card"><b>${c}</b><span class="sm">streak (${u})</span></div><div class="card"><b>${b}</b><span class="sm">best (${u})</span></div><div class="card"><b>${Math.round(rate(h,30)*100)}%</b><span class="sm">last 30 days</span></div></div>
 <h2>Last 17 weeks</h2><div class="heat" style="--c:${h.color}">${cells}</div>
 <div class="acts"><button class="btn" onclick="openForm('${h.id}')">Edit</button><button class="btn g" onclick="arch('${h.id}')">Archive</button><button class="btn g" onclick="del('${h.id}')">Delete</button></div>`}
-function trow(t){return `<div class="row td" style="--c:var(--acc)"><div class="nm ${t.done?'fin':''}">${E(t.text)}</div><button class="xb" onclick="delT('${t.id}')" aria-label="Delete task">×</button><button class="chk ${t.done?'d':''}" onclick="tgT('${t.id}')" aria-label="Toggle done">✓</button></div>`}
+function trow(t){return `<div class="sw ${fresh==t.id?'in':''}" data-id="${t.id}"><div class="bgk l"><span>${t.done?'Undo':'Done'}</span></div><div class="bgk r"><span>Delete</span></div><div class="row td front" style="--c:var(--acc)"><div class="nm ${t.done?'fin':''}">${E(t.text)}</div><button class="xb" onclick="delT('${t.id}')" aria-label="Delete task">×</button><button class="chk ${t.done?'d':''}" onclick="tgT('${t.id}')" aria-label="Toggle done">✓</button></div></div>`}
 function todoV(){const o=S.todos.filter(t=>!t.done),d=S.todos.filter(t=>t.done);
-return `<h1>To-do</h1><p class="sm">${o.length} open</p><div class="tdadd"><input id="td_i" maxlength="120" placeholder="Add a task" aria-label="New task" onkeydown="if(event.key=='Enter')addT()"><button class="btn" onclick="addT()">Add</button></div>`+(o.length?o.map(trow).join(''):`<p class="empty">${d.length?'All done.':'No tasks yet. Add one above.'}</p>`)+(d.length?`<div class="tdh"><h2>Done (${d.length})</h2><button class="btn g" onclick="clrT()">Clear done</button></div>`+d.map(trow).join(''):'')}
-function addT(){const i=$('#td_i'),x=i.value.trim();if(!x){i.focus();return}S.todos.push({id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),text:x,done:0});save();draw();$('#td_i').focus()}
-function tgT(id){const t=S.todos.find(t=>t.id==id);if(t){t.done=t.done?0:1;save();draw()}}
-function delT(id){S.todos=S.todos.filter(t=>t.id!=id);save();draw()}
+return `<h1>To-do</h1><p class="sm">${o.length} open</p><div class="tdadd"><input id="td_i" maxlength="120" placeholder="Add a task" aria-label="New task" onkeydown="if(event.key=='Enter')addT()"><button class="btn" onclick="addT()">Add</button></div>`+(S.todos.length?'<p class="sm">Swipe right to complete, left to delete.</p>':'')+(o.length?o.map(trow).join(''):`<p class="empty">${d.length?'All done.':'No tasks yet. Add one above.'}</p>`)+(d.length?`<div class="tdh"><h2>Done (${d.length})</h2><button class="btn g" onclick="clrT()">Clear done</button></div>`+d.map(trow).join(''):'')}
+function addT(){const i=$('#td_i'),x=i.value.trim();if(!x){i.focus();return}const id='t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);S.todos.unshift({id,text:x,done:0});fresh=id;save();draw();$('#td_i').focus()}
+let fresh=null,sw0=null;
+const swEl=id=>document.querySelector('.sw[data-id="'+id+'"]');
+function leave(sw,dir,cb){if(!sw){cb();return}if(sw.dataset.busy)return;sw.dataset.busy=1;const f=sw.querySelector('.front');sw.classList.add(dir>0?'sr':'sl');f.style.transition='transform .22s ease';f.style.transform='translateX('+dir*110+'%)';
+setTimeout(()=>{sw.style.height=sw.offsetHeight+'px';sw.offsetHeight;sw.style.transition='height .2s ease,margin .2s ease';sw.style.height='0';sw.style.margin='0';setTimeout(cb,200)},200)}
+function tgT(id){leave(swEl(id),1,()=>doT(id))}
+function doT(id){const t=S.todos.find(t=>t.id==id);if(t){t.done=t.done?0:1;fresh=id;save();draw()}}
+function delT(id){leave(swEl(id),-1,()=>rmT(id))}
+function rmT(id){S.todos=S.todos.filter(t=>t.id!=id);save();draw()}
+const thr=s=>Math.max(90,s.w*.3);
+document.addEventListener('pointerdown',e=>{const f=e.target.closest('.front');if(!f||e.target.closest('button')||f.parentNode.dataset.busy)return;sw0={f,sw:f.parentNode,x:e.clientX,y:e.clientY,dx:0,lock:0,past:0,id:e.pointerId,w:f.offsetWidth}});
+document.addEventListener('pointermove',e=>{const s=sw0;if(!s||e.pointerId!=s.id)return;const dx=e.clientX-s.x,dy=e.clientY-s.y;
+if(!s.lock){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){sw0=null;return}if(Math.abs(dx)<=8)return;s.lock=1;s.f.style.transition='none';try{s.f.setPointerCapture(e.pointerId)}catch(_){}}
+s.dx=dx;s.f.style.transform='translateX('+dx+'px)';s.sw.classList.toggle('sr',dx>0);s.sw.classList.toggle('sl',dx<0);
+const past=Math.abs(dx)>=thr(s);if(past!=s.past){s.past=past;s.sw.classList.toggle('go',past);if(past&&navigator.vibrate)navigator.vibrate(8)}});
+function endSw(e){const s=sw0;if(!s||e.pointerId!=s.id)return;sw0=null;if(!s.lock)return;const id=s.sw.dataset.id;
+if(e.type=='pointerup'&&Math.abs(s.dx)>=thr(s)){s.sw.classList.remove('go');leave(s.sw,s.dx>0?1:-1,()=>s.dx>0?doT(id):rmT(id))}
+else{s.f.style.transition='';s.f.style.transform='';s.sw.classList.remove('go');setTimeout(()=>{if(!s.sw.dataset.busy)s.sw.classList.remove('sr','sl')},260)}}
+document.addEventListener('pointerup',endSw);document.addEventListener('pointercancel',endSw);
 function clrT(){if(!confirm('Remove all done tasks?'))return;S.todos=S.todos.filter(t=>!t.done);save();draw()}
-function draw(){$('#app').innerHTML=view=='stats'?statsV():view=='detail'?detV():view=='todo'?todoV():todayV();$('#t1').className=view=='today'||view=='detail'?'on':'';$('#t2').className=view=='stats'?'on':'';$('#t3').className=view=='todo'?'on':''}
-function show(x){view=x;draw();scrollTo(0,0)}function go(n){day=add(day,n);draw()}function rng(r){range=r;draw()}function detail(id){sel=id;show('detail')}
+function draw(){$('#app').innerHTML=view=='stats'?statsV():view=='detail'?detV():view=='todo'?todoV():todayV();$('#t1').className=view=='today'||view=='detail'?'on':'';$('#t2').className=view=='stats'?'on':'';$('#t3').className=view=='todo'?'on':'';fresh=null}
+function show(x){view=x;draw();scrollTo(0,0);const a=$('#app');a.classList.remove('fade');void a.offsetWidth;a.classList.add('fade')}function go(n){day=add(day,n);draw()}function rng(r){range=r;draw()}function detail(id){sel=id;show('detail')}
 function bump(id,d){const h=get(id),L=S.logs[id]=S.logs[id]||{};L[day]=Math.max(0,v(h,day)+d*(h.type=='count'?h.step:1));save();draw()}
 function arch(id){get(id).arch=1;save();show('today')}function del(id){if(!confirm('Delete this habit and its history?'))return;S.habits=S.habits.filter(h=>h.id!=id);delete S.logs[id];save();show('today')}
 function fsync(){$('#f_c').style.display=$('#f_t').value=='count'?'grid':'none';$('#f_k').style.display=$('#f_m').value=='days'?'flex':'none';$('#f_wl').style.display=$('#f_m').value=='weekly'?'block':'none'}
