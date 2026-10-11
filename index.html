@@ -18,7 +18,7 @@ h1{font-size:40px;line-height:1;margin:0;font-weight:800;letter-spacing:-.03em}h
 .empty{text-align:center;color:var(--mut);padding:40px 0}
 .tabs{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;align-items:center;justify-content:center;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line)}
 .tabs button{flex:1;max-width:150px;height:48px;border-radius:14px;font-weight:600;color:var(--mut)}.tabs .on{color:var(--ink);background:var(--bg)}.tabs .add{flex:none;width:56px;height:56px;border-radius:50%;background:var(--acc);color:var(--on);font-size:30px}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.card{background:var(--card);border-radius:16px;padding:12px}.card b{font-size:28px;display:block;font-weight:800}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}.card{background:var(--card);border-radius:16px;padding:12px}.card b{font-size:28px;display:block;font-weight:800}.card .sm{display:block}.card .dl{font-size:12px;margin-top:2px}
 .seg{display:flex;gap:6px;margin:12px 0}.seg button{flex:1;height:44px;border-radius:12px;background:var(--card)}.seg .on{background:var(--acc);color:var(--on)}
 .chart{display:flex;align-items:flex-end;gap:3px;height:150px;margin:12px 0 24px}.col{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--mut)}.t{flex:1;width:100%;display:flex;align-items:flex-end}.t i{width:100%;background:var(--acc);border-radius:4px 4px 0 0;min-height:3px}.col span{height:16px}
 .rt{margin:12px 0}.rt div{display:flex;justify-content:space-between}.rt .bar i{background:var(--c)}
@@ -79,9 +79,9 @@ label{display:block;font-size:14px;color:var(--mut);margin-top:12px}input,select
 const $=s=>document.querySelector(s),E=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pad=n=>String(n).padStart(2,'0'),key=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),P=k=>{const[a,b,c]=k.split('-');return new Date(+a,b-1,+c)},add=(k,n)=>{const d=P(k);d.setDate(d.getDate()+n);return key(d)},dow=k=>(P(k).getDay()+6)%7,ws=k=>add(k,-dow(k)),TODAY=key(new Date());
 const COLS=['#E4572E','#E3A21A','#2E9E6B','#2F7DE1','#8A5BD6','#D6457F'],DN=['M','T','W','T','F','S','S'];
-let S={habits:[],logs:{},todos:[]},view='today',day=TODAY,sel=null,range='week',editId=null,fcol=COLS[0],fdays=[];
+let S={habits:[],logs:{},todos:[],tlog:{}},view='today',day=TODAY,sel=null,range='week',editId=null,fcol=COLS[0],fdays=[];
 try{const r=JSON.parse(localStorage.getItem('ht')||'null');if(r&&r.habits)S=r}catch(e){}
-S.todos=Array.isArray(S.todos)?S.todos:[];
+S.todos=Array.isArray(S.todos)?S.todos:[];S.tlog=S.tlog&&typeof S.tlog=='object'?S.tlog:{};
 const save=()=>{try{localStorage.setItem('ht',JSON.stringify(S))}catch(e){}};
 const act=()=>S.habits.filter(h=>!h.arch),get=id=>S.habits.find(h=>h.id==id);
 const v=(h,k)=>(S.logs[h.id]||{})[k]||0,ok=(h,k)=>v(h,k)>=(h.type=='count'?h.target:1),sch=(h,k)=>h.mode!='days'||h.days.includes(dow(k));
@@ -98,9 +98,20 @@ function todayV(){const hs=act().filter(h=>sch(h,day)),d=hs.filter(h=>ok(h,day))
 return `<div class="nav"><button onclick="go(-1)" aria-label="Previous day">‹</button><div><h1>${day==TODAY?'Today':D.toLocaleDateString('en-GB',{weekday:'long'})}</h1><p class="sm">${D.toLocaleDateString('en-GB',{day:'numeric',month:'long'})}</p></div><button onclick="go(1)" ${day>=TODAY?'disabled':''} aria-label="Next day">›</button></div><div class="bar"><i style="width:${hs.length?d/hs.length*100:0}%"></i></div><p class="sm">${d} of ${hs.length} done${hs.length?' – swipe right to log':''}</p>`+(hs.length?hs.map(row).join(''):`<p class="empty">No habits scheduled. Tap + to add one.</p>`)}
 function statsV(){const N=range=='week'?7:30,ds=[];for(let i=N-1;i>=0;i--)ds.push(add(TODAY,-i));
 const pc=ds.map(k=>{const hs=act().filter(h=>h.mode!='weekly'&&sch(h,k)&&k>=start(h));return hs.length?hs.filter(h=>ok(h,k)).length/hs.length:null}),f=pc.filter(x=>x!==null),avg=f.length?Math.round(f.reduce((a,b)=>a+b,0)/f.length*100):0;
-return `<h1>Stats</h1><div class="seg"><button class="${range=='week'?'on':''}" onclick="rng('week')">Week</button><button class="${range=='month'?'on':''}" onclick="rng('month')">Month</button></div><p class="sm">Average daily completion: <b>${avg}%</b></p>
+return `<h1>Stats</h1>${sumV()}<h2 style="margin-top:28px">Trends</h2><div class="seg"><button class="${range=='week'?'on':''}" onclick="rng('week')">Week</button><button class="${range=='month'?'on':''}" onclick="rng('month')">Month</button></div><p class="sm">Average daily completion: <b>${avg}%</b></p>
 <div class="chart">${pc.map((p,i)=>`<div class="col" title="${ds[i]}"><div class="t"><i style="height:${(p||0)*100}%"></i></div><span>${N==7?DN[dow(ds[i])]:(i%7==0?P(ds[i]).getDate():'')}</span></div>`).join('')}</div>
 <h2>By habit</h2>`+(act().length?act().map(h=>{const r=Math.round(rate(h,N)*100);return `<div class="rt" style="--c:${h.color}"><div><span>${E(h.name)}</span><b>${r}%</b></div><div class="bar"><i style="width:${r}%"></i></div></div>`}).join(''):`<p class="empty">Add a habit to see stats.</p>`)+`<div class="acts"><button class="btn g" onclick="openB()">Backup / restore</button></div>`}
+let wo=0;
+function wkRate(s){let N=0,D=0;const e=add(s,6),lim=e<TODAY?e:TODAY,per=[];for(const h of act()){if(start(h)>lim)continue;let n=0,d=0;if(h.mode=='weekly'){d=h.n;n=Math.min(wc(h,s),h.n)}else for(let k=s;k<=lim;k=add(k,1)){if(k<start(h)||!sch(h,k))continue;d++;if(ok(h,k))n++}if(d){N+=n;D+=d;per.push({h,n,d,r:n/d,w:h.mode=='weekly'})}}return{N,D,per}}
+function sumW(o){wo=o;draw()}
+function sumV(){const s=add(ws(TODAY),-7*wo),a=wkRate(s),b=wkRate(add(s,-7)),pc=a.D?Math.round(a.N/a.D*100):null,pp=b.D?Math.round(b.N/b.D*100):null;
+const tk=x=>{let c=0;for(let i=0;i<7;i++)c+=S.tlog[add(x,i)]||0;return c},t1=tk(s),t0=tk(add(s,-7));
+const dl=(x,y,u)=>x==null||y==null?'no data last week':x==y?'same as last week':(x>y?'+':'−')+Math.abs(x-y)+u+' vs last week';
+const R=a.per.slice().sort((x,y)=>y.r-x.r||y.n-x.n),best=R[0],low=R[R.length-1],miss=a.per.filter(o=>!o.w).reduce((m,o)=>m+o.d-o.n,0);
+const f=d=>P(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+const line=(t,o)=>`<div class="rt" style="--c:${o.h.color}"><div><span>${t}</span><b>${E(o.h.name)} ${o.n}/${o.d}</b></div><div class="bar"><i style="width:${Math.round(o.r*100)}%"></i></div></div>`;
+return `<div class="seg"><button class="${wo?'':'on'}" onclick="sumW(0)">This week</button><button class="${wo?'on':''}" onclick="sumW(1)">Last week</button></div><p class="sm">${f(s)} – ${f(add(s,6))}</p>
+<div class="cards"><div class="card"><b>${pc==null?'–':pc+'%'}</b><span class="sm">habits done</span><span class="sm dl">${dl(pc,pp,' pts')}</span></div><div class="card"><b>${t1}</b><span class="sm">tasks done</span><span class="sm dl">${dl(t1,t0,'')}</span></div><div class="card"><b>${miss}</b><span class="sm">missed</span><span class="sm dl">habit days</span></div></div>`+(best?line('Best habit',best):'')+(low&&low!==best&&low.r<1?line('Needs attention',low):'')}
 function detV(){const h=get(sel);if(!h){view='today';return todayV()}const[c,b]=streak(h),u=h.mode=='weekly'?'wks':'days',s=add(ws(TODAY),-112);let cells='';
 for(let i=0;i<119;i++){const k=add(s,i);if(k>TODAY){cells+='<i class="x"></i>';continue}const a=h.type=='count'?Math.min(1,v(h,k)/h.target):(ok(h,k)?1:0);cells+=a?`<i class="on" style="opacity:${.3+.7*a}" title="${k}"></i>`:`<i class="${sch(h,k)?'':'u'}" title="${k}"></i>`}
 const sc=h.mode=='daily'?'Every day':h.mode=='weekly'?`${h.n}× per week`:h.days.map(d=>['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][d]).join(', ');
@@ -117,7 +128,7 @@ const swEl=id=>document.querySelector('.swp[data-id="'+id+'"]');
 function leave(sw,dir,cb){if(!sw){cb();return}if(sw.dataset.busy)return;sw.dataset.busy=1;const f=sw.querySelector('.front');sw.classList.add(dir>0?'sr':'sl');f.style.transition='transform .22s ease';f.style.transform='translateX('+dir*110+'%)';
 setTimeout(()=>{sw.style.height=sw.offsetHeight+'px';sw.offsetHeight;sw.style.transition='height .2s ease,margin .2s ease';sw.style.height='0';sw.style.margin='0';setTimeout(cb,200)},200)}
 function tgT(id){leave(swEl(id),1,()=>doT(id))}
-function doT(id){const t=S.todos.find(t=>t.id==id);if(t){t.done=t.done?0:1;fresh=id;save();draw()}}
+function doT(id){const t=S.todos.find(t=>t.id==id);if(!t)return;if(!t.done){t.done=1;t.doneAt=TODAY;S.tlog[TODAY]=(S.tlog[TODAY]||0)+1}else{t.done=0;const k=t.doneAt;if(k&&S.tlog[k])S.tlog[k]--;delete t.doneAt}fresh=id;save();draw()}
 function delT(id){leave(swEl(id),-1,()=>rmT(id))}
 function rmT(id){const i=S.todos.findIndex(t=>t.id==id);if(i<0)return;const t=S.todos.splice(i,1)[0];save();draw();toast('Task deleted',()=>{S.todos.splice(Math.min(i,S.todos.length),0,t);fresh=t.id;save();draw()})}
 function doH(id){const h=get(id);if(!h)return;const b0=streak(h)[0];const L=S.logs[id]=S.logs[id]||{};L[day]=ok(h,day)?0:(h.type=='count'?h.target:1);popId=id;save();draw();chk(h,b0)}
@@ -154,7 +165,7 @@ if(editId)Object.assign(get(editId),o);else S.habits.push({id:'h'+Date.now().toS
 function closeAll(){$('#fm').hidden=true;$('#bk').hidden=true}
 function openB(){$('#b_t').value=JSON.stringify(S);$('#bk').hidden=false}
 function copyB(){const t=$('#b_t');t.select();try{navigator.clipboard.writeText(t.value)}catch(e){}}
-function restoreB(){try{const r=JSON.parse($('#b_t').value);if(!r.habits||!r.logs)throw 0;if(!confirm('Replace all current data with this backup?'))return;S=r;S.todos=Array.isArray(S.todos)?S.todos:[];save();closeAll();show('today')}catch(e){alert('That backup text is not valid.')}}
+function restoreB(){try{const r=JSON.parse($('#b_t').value);if(!r.habits||!r.logs)throw 0;if(!confirm('Replace all current data with this backup?'))return;S=r;S.todos=Array.isArray(S.todos)?S.todos:[];S.tlog=S.tlog&&typeof S.tlog=='object'?S.tlog:{};save();closeAll();show('today')}catch(e){alert('That backup text is not valid.')}}
 draw();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script></body></html>
